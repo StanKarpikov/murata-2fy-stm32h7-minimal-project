@@ -1,0 +1,85 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+            "name": "Transmitter",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            // "preLaunchTask": "build",
+            "serialNumber": "003900493234511037333934", // Serial number of the first ST-Link device
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32h7x.cfg"
+            ],
+            "device": "STM32H750xx",
+            "svdFile": "${workspaceRoot}/STM32H750_v1r8/STM32H750x.svd",
+            // "preLaunchTask": "program_qspi",
+            "postResetCommands": [
+                "monitor reset halt",
+            ],
+            "searchDir": [],
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "overrideLaunchCommands": [
+                "monitor reset halt"
+            ],
+            "symbolFiles": [
+                "${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+                "${workspaceRoot}/bootloader/bootloader_usb/build/Debug/qspi_bootloader.elf"
+            ],
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 2
+            },
+            "serverArgs": [
+                "-c",
+                "adapter serial 003900493234511037333934"
+            ],
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+            "name": "Receiver",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            // "preLaunchTask": "build",
+            "serialNumber": "004500483234511137333934", // Serial number of the second ST-Link device
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32h7x.cfg"
+            ],
+            "device": "STM32H750xx",
+            "svdFile": "${workspaceRoot}/STM32H750_v1r8/STM32H750x.svd",
+            // "preLaunchTask": "program_qspi",
+            "postResetCommands": [
+                "monitor reset halt",
+            ],
+            "searchDir": [],
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "overrideLaunchCommands": [
+                "monitor reset halt"
+            ],
+            "symbolFiles": [
+                "${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+            ],
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 1
+            },
+            "serverArgs": [
+                "-c",
+                "adapter serial 004500483234511137333934"
+            ],
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

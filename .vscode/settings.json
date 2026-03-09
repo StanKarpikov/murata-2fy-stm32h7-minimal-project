@@ -1,0 +1,43 @@
+{
+    "files.exclude": {
+        "**/flutter/ephemeral": false,
+        "**/Flutter/ephemeral": false,
+        "**/.symlinks": false,
+        "**/.plugin_symlinks": false
+    },
+    "workbench.editor.enablePreview": false,
+    "clangd.arguments": [
+        "--background-index",
+        "--compile-commands-dir=${workspaceFolder}/build/Debug",
+        "--query-driver=${workspaceFolder}/../arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-*",
+        "--log=verbose"
+    ],
+    "workbench.colorCustomizations": {
+        "terminalCursor.foreground": "#000000",
+        "terminalCursor.background": "#ffffff"
+    },
+    "cmake.cmakePath": "cmake",
+    "cmake.environment": {
+        "PATH": "${workspaceFolder}/../arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/bin/:${env:PATH}"
+    },
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/sources/poky/bitbake/lib",
+        "${workspaceFolder}/sources/poky/meta/lib"
+    ],
+    "files.associations": {
+        "*.rasi": "css",
+        "*.bbmodel": "json",
+        "*.sublime-snippet": "xml",
+        "*.hbs": "html",
+        "*.ejs": "html",
+        "*.emu": "html",
+        "lesskey": "lesskey",
+        "*.Xresources": "xdefaults",
+        "i3/config": "i3",
+        "i3/*.conf": "i3",
+        "polybar/config": "ini",
+        "polybar/*.conf": "ini",
+        "*.conf": "bitbake",
+        "*.inc": "bitbake"
+    }
+}
