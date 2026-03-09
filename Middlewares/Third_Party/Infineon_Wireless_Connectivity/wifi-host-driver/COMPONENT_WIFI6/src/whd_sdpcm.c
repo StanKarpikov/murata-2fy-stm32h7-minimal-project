@@ -37,6 +37,7 @@
 #include "whd_wlioctl.h"
 #include "whd_types_int.h"
 #include "whd_endian.h"
+#include "whd_utils.h"
 
 /******************************************************
 * @cond       Constants

@@ -446,7 +446,8 @@ static cy_socket_ctx_t* alloc_socket()
             socket_list[i].ctx->iface_idx = 1;
 #else
             /* Default interface for Wi-Fi will be STA interface */
-            socket_list[i].ctx->iface_type = CY_SOCKET_STA_INTERFACE;
+            extern int global_iface;
+            socket_list[i].ctx->iface_type = global_iface;
             socket_list[i].ctx->iface_idx = 0;
 #endif
             socket_list[i].ctx->socket_magic_header = SECURE_SOCKETS_MAGIC_HEADER;
@@ -2251,6 +2252,7 @@ cy_rslt_t cy_socket_setsockopt(cy_socket_t handle, int level, int optname, const
         case CY_SOCKET_SOL_IP:
             switch(optname)
             {
+#if LWIP_IGMP
                 case CY_SOCKET_SO_JOIN_MULTICAST_GROUP:
                 case CY_SOCKET_SO_LEAVE_MULTICAST_GROUP:
                 {
@@ -2390,7 +2392,6 @@ cy_rslt_t cy_socket_setsockopt(cy_socket_t handle, int level, int optname, const
 
                     return result;
                 }
-
                 case CY_SOCKET_SO_IP_MULTICAST_TTL:
                 {
                     if(NETCONNTYPE_GROUP(netconn_type(ctx->conn_handler)) != NETCONN_UDP)
@@ -2406,6 +2407,7 @@ cy_rslt_t cy_socket_setsockopt(cy_socket_t handle, int level, int optname, const
                     break;
                 }
 
+#endif
                 case CY_SOCKET_SO_IP_TOS:
                 {
                     if( (ctx->conn_handler == NULL) || (ctx->conn_handler->pcb.ip == NULL) )
@@ -2867,6 +2869,7 @@ cy_rslt_t cy_socket_getsockopt(cy_socket_t handle,  int level, int optname, void
         {
             switch(optname)
             {
+#if LWIP_IGMP
                 case CY_SOCKET_SO_IP_MULTICAST_TTL:
                 {
                     if(*optlen < sizeof(uint8_t))
@@ -2893,7 +2896,7 @@ cy_rslt_t cy_socket_getsockopt(cy_socket_t handle,  int level, int optname, void
 
                     break;
                 }
-
+#endif
                 case CY_SOCKET_SO_IP_TOS:
                 {
                     if(*optlen < sizeof(uint8_t))
@@ -3968,7 +3971,7 @@ cy_rslt_t cy_socket_delete(cy_socket_t handle)
 
         /* Call wifi-mw-core network activity function to resume the network stack. */
         cy_network_activity_notify(CY_NETWORK_ACTIVITY_TX);
-
+#if LWIP_IGMP
         num_multicast_groups = multicast_info.multicast_member_count;
         while(count < num_multicast_groups)
         {
@@ -4004,7 +4007,7 @@ cy_rslt_t cy_socket_delete(cy_socket_t handle)
             member_index++;
             count++;
         }
-
+#endif
         cy_rtos_set_mutex(&multicast_join_leave_mutex);
         ss_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "multicast_join_leave_mutex unlocked %s %d\n", __FILE__, __LINE__);
 

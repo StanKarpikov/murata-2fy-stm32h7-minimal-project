@@ -242,7 +242,7 @@ typedef uint64_t max_size_t;
 #define IPERFTimeFrmt "%4.4f-%4.4f"
 #define IPERFTimeSpace "            "
 #else
-#define IPERFTimeFrmt "%4.2f-%4.2f"
+#define IPERFTimeFrmt "%4d-%4d"
 #define IPERFTimeSpace "        "
 #endif
 

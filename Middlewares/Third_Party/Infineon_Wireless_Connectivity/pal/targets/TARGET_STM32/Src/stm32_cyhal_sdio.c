@@ -118,7 +118,7 @@ extern "C"
 #if defined (CYHAL_SDIO_DEBUG)
     #define _CYHAL_SDIO_LOG(...)       (printf(__VA_ARGS__))
 #else
-    #define _CYHAL_SDIO_LOG(...)
+    #define _CYHAL_SDIO_LOG(...) printf(__VA_ARGS__)
 #endif /* defined (CYHAL_SDIO_LOG) */
 
 /***************************************************************************************************
@@ -406,11 +406,16 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t* obj, cyhal_sdio_transfer_type_t
             number_of_blocks = 1UL;
         }
         /* Check data buffer if aligned on 32-bytes (needed for cache maintenance purpose),
-         * and Length is multiple by block size. If NOT, use internal buffer for DMA */
-        bool use_temp_dma_buffer = ((((uint32_t)data % _CYHAL_DMA_BUFFER_ALIGN_BYTES) != 0u) ||
-                                    ((length % obj->block_size) != 0u) ||
-                                    (direction == CYHAL_SDIO_XFER_TYPE_READ));
-        assert_param(!use_temp_dma_buffer || (length <= sizeof(_temp_dma_buffer)));
+        * and Length is multiple by block size. If NOT, use internal buffer for DMA */
+        //
+        // NOTE: Always use DMA in the current configuration
+        //
+        bool use_temp_dma_buffer = true;
+        //  ((((uint32_t)data % _CYHAL_DMA_BUFFER_ALIGN_BYTES) != 0u) ||
+        //                             ((length % obj->block_size) != 0u) ||
+        //                             (direction == CYHAL_SDIO_XFER_TYPE_READ));
+
+        // assert_param(!use_temp_dma_buffer || (length <= sizeof(_temp_dma_buffer)));
 
         obj->hsd->ErrorCode = HAL_SD_ERROR_NONE;
         obj->hsd->State     = HAL_SD_STATE_BUSY;

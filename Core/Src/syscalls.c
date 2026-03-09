@@ -21,7 +21,6 @@
  */
 
 /* Includes */
-#include "bsp.h"
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -281,7 +280,6 @@ void abort(void)
 {
   if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0)
   {
-    bsp_breakpoint();
   }
   else
   {

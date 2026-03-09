@@ -39,7 +39,7 @@
 #ifdef ENABLE_WCM_LOGS
 #define cy_wcm_log_msg cy_log_msg
 #else
-#define cy_wcm_log_msg(a,b,c,...)
+#define cy_wcm_log_msg cy_log_msg
 #endif
 
 #define cy_wps_assert(error_string, assertion)         do { if (!(assertion) ){ printf( (error_string) ); } } while (0)

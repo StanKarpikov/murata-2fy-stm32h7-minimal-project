@@ -136,11 +136,11 @@ void delay_loop(unsigned long usec)
 #ifdef HAVE_NANOSLEEP
     delay_nanosleep(usec);
 #else
-#ifndef COMPONENT_CAT5
-    delay_busyloop(usec);
-#else
+// #ifndef COMPONENT_CAT5
+//     delay_busyloop(usec);
+// #else
     cy_rtos_delay_milliseconds(usec/1000);
-#endif /* COMPONENT_CAT5 */
+// #endif /* COMPONENT_CAT5 */
 #endif
 #endif
 }

@@ -56,7 +56,6 @@
  */
 __attribute__((no_instrument_function)) void ReportHardFault(uint32_t *stack_frame, uint32_t exc)
 {
-    bsp_breakpoint();
     // Check if FPU context was saved (bit 4 of EXC_RETURN indicates FPU was active)
     uint32_t fpu_was_active        = (exc & 0x10) != 0;
     uint32_t *adjusted_stack_frame = stack_frame;
@@ -220,6 +219,14 @@ extern LPTIM_HandleTypeDef hlptim1;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_dma_generator0;
+extern DMA_HandleTypeDef hdma_dma_generator1;
+extern DMA_HandleTypeDef hdma_dma_generator3;
+extern DMA_HandleTypeDef hdma_dma_generator2;
+extern DMA_HandleTypeDef hdma_spi2_rx;
+extern DMA_HandleTypeDef hdma_sai3_a;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim12;
 extern TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN EV */
@@ -230,25 +237,28 @@ extern TIM_HandleTypeDef htim17;
 /*           Cortex Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
-  * @brief This function handles Non maskable interrupt.
-  */
+ * @brief This function handles Non maskable interrupt.
+ */
 void NMI_Handler(void)
 {
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+#if !ENABLE_INSTRUMENT_BOOT_TEST
+    /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+    /* USER CODE END NonMaskableInt_IRQn 0 */
+    /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 
     abort();
-  /* USER CODE END NonMaskableInt_IRQn 1 */
+/* USER CODE END NonMaskableInt_IRQn 1 */
+#endif
 }
 
 /**
-  * @brief This function handles Hard fault interrupt.
-  */
-void HardFault_Handler(void)
+ * @brief This function handles Hard fault interrupt.
+ */
+__attribute__((no_instrument_function)) void HardFault_Handler(void)
 {
-  /* USER CODE BEGIN HardFault_IRQn 0 */
+#if !ENABLE_INSTRUMENT_BOOT_TEST
+    /* USER CODE BEGIN HardFault_IRQn 0 */
     __asm volatile(
         "TST    LR, #0b0100;      "
         "ITE    EQ;               "
@@ -256,20 +266,19 @@ void HardFault_Handler(void)
         "MRSNE  R0, PSP;          "
         "MOV    R1, LR;           "
         "B      ReportHardFault;  ");
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-    /* USER CODE END W1_HardFault_IRQn 0 */
-  }
+    /* USER CODE END HardFault_IRQn 0 */
+
+    abort();
+#endif
 }
 
 /**
-  * @brief This function handles Memory management fault.
-  */
+ * @brief This function handles Memory management fault.
+ */
 void MemManage_Handler(void)
 {
-  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+#if !ENABLE_INSTRUMENT_BOOT_TEST
+    /* USER CODE BEGIN MemoryManagement_IRQn 0 */
     __asm volatile(
         "TST    LR, #0b0100;      "
         "ITE    EQ;               "
@@ -277,20 +286,19 @@ void MemManage_Handler(void)
         "MRSNE  R0, PSP;          "
         "MOV    R1, LR;           "
         "B      ReportHardFault;  ");
-  /* USER CODE END MemoryManagement_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
-    /* USER CODE END W1_MemoryManagement_IRQn 0 */
-  }
+    /* USER CODE END MemoryManagement_IRQn 0 */
+
+    abort();
+#endif
 }
 
 /**
-  * @brief This function handles Pre-fetch fault, memory access fault.
-  */
+ * @brief This function handles Pre-fetch fault, memory access fault.
+ */
 void BusFault_Handler(void)
 {
-  /* USER CODE BEGIN BusFault_IRQn 0 */
+#if !ENABLE_INSTRUMENT_BOOT_TEST
+    /* USER CODE BEGIN BusFault_IRQn 0 */
     __asm volatile(
         "TST    LR, #0b0100;      "
         "ITE    EQ;               "
@@ -298,20 +306,19 @@ void BusFault_Handler(void)
         "MRSNE  R0, PSP;          "
         "MOV    R1, LR;           "
         "B      ReportHardFault;  ");
-  /* USER CODE END BusFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_BusFault_IRQn 0 */
-    /* USER CODE END W1_BusFault_IRQn 0 */
-  }
+    /* USER CODE END BusFault_IRQn 0 */
+
+    abort();
+#endif
 }
 
 /**
-  * @brief This function handles Undefined instruction or illegal state.
-  */
+ * @brief This function handles Undefined instruction or illegal state.
+ */
 void UsageFault_Handler(void)
 {
-  /* USER CODE BEGIN UsageFault_IRQn 0 */
+#if !ENABLE_INSTRUMENT_BOOT_TEST
+    /* USER CODE BEGIN UsageFault_IRQn 0 */
     __asm volatile(
         "TST    LR, #0b0100;      "
         "ITE    EQ;               "
@@ -319,25 +326,23 @@ void UsageFault_Handler(void)
         "MRSNE  R0, PSP;          "
         "MOV    R1, LR;           "
         "B      ReportHardFault;  ");
-  /* USER CODE END UsageFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
-    /* USER CODE END W1_UsageFault_IRQn 0 */
-  }
+    /* USER CODE END UsageFault_IRQn 0 */
+
+    abort();
+#endif
 }
 
 /**
-  * @brief This function handles Debug monitor.
-  */
+ * @brief This function handles Debug monitor.
+ */
 void DebugMon_Handler(void)
 {
-  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+    /* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+    /* USER CODE END DebugMonitor_IRQn 0 */
+    /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
-  /* USER CODE END DebugMonitor_IRQn 1 */
+    /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
 /******************************************************************************/
@@ -347,32 +352,37 @@ void DebugMon_Handler(void)
 /* please refer to the startup file (startup_stm32h7xx.s).                    */
 /******************************************************************************/
 
-/**
-  * @brief This function handles EXTI line0 interrupt.
-  */
-void EXTI0_IRQHandler(void)
+void EXTI9_5_IRQHandler(void)
 {
-  /* USER CODE BEGIN EXTI0_IRQn 0 */
-
-  /* USER CODE END EXTI0_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(SAI_FS_IRQ_Pin);
-  /* USER CODE BEGIN EXTI0_IRQn 1 */
-
-  /* USER CODE END EXTI0_IRQn 1 */
+    HAL_GPIO_EXTI_IRQHandler(WIFI_HOST_WAKE_Pin);
 }
 
 /**
-  * @brief This function handles TIM17 global interrupt.
-  */
+ * @brief This function handles TIM2 global interrupt.
+ */
+void TIM2_IRQHandler(void)
+{
+    /* USER CODE BEGIN TIM2_IRQn 0 */
+
+    /* USER CODE END TIM2_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim2);
+    /* USER CODE BEGIN TIM2_IRQn 1 */
+
+    /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
+ * @brief This function handles TIM17 global interrupt.
+ */
 void TIM17_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM17_IRQn 0 */
+    /* USER CODE BEGIN TIM17_IRQn 0 */
 
-  /* USER CODE END TIM17_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim17);
-  /* USER CODE BEGIN TIM17_IRQn 1 */
+    /* USER CODE END TIM17_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim17);
+    /* USER CODE BEGIN TIM17_IRQn 1 */
 
-  /* USER CODE END TIM17_IRQn 1 */
+    /* USER CODE END TIM17_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

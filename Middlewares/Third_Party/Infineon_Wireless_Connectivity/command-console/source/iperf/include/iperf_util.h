@@ -285,7 +285,7 @@ void redirect(const char *inOutputFileName);
 #define FREE_ARRAY( ptr )                     \
   do {                                          \
     if ( ptr != NULL ) {                        \
-      free(ptr); \
+      vPortFree(ptr); \
       ptr = NULL;                               \
     }                                           \
   } while( false )
@@ -294,7 +294,7 @@ void redirect(const char *inOutputFileName);
 #define FREE_PTR(ptr)      \
     do {                   \
         if (ptr != NULL) { \
-            free(ptr);     \
+            vPortFree(ptr);     \
             ptr = NULL;    \
         }                  \
     } while (0)

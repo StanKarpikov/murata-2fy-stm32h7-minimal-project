@@ -127,7 +127,8 @@ void reporter_printstats( Transfer_Info *stats ) {
 		header_printed = 1;
 	    }
 	    printf(report_bw_format, stats->transferID,
-		   stats->startTime, stats->endTime,
+		   (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+		   (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
 		   buffer, &buffer[sizeof(buffer)/2]);
 	} else {
 	    if( !header_printed ) {
@@ -185,7 +186,8 @@ void reporter_printstats( Transfer_Info *stats ) {
 #ifdef HAVE_ISOCHRONOUS
 	if (stats->mIsochronous)
 	    printf( stats->mEnhanced ? report_bw_pps_enhanced_isoch_format : report_bw_format, stats->transferID,
-		    stats->startTime, stats->endTime,
+		    (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+		    (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
 		    buffer, &buffer[sizeof(buffer)/2],
 		    stats->sock_callstats.write.WriteCnt,
 		    stats->sock_callstats.write.WriteErr,
@@ -195,7 +197,8 @@ void reporter_printstats( Transfer_Info *stats ) {
 	else
 #endif
 	    printf( stats->mEnhanced ? report_bw_pps_enhanced_format : report_bw_format, stats->transferID,
-		    stats->startTime, stats->endTime,
+		    (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+		    (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
 		    buffer, &buffer[sizeof(buffer)/2],
 		    stats->sock_callstats.write.WriteCnt,
 		    stats->sock_callstats.write.WriteErr,
@@ -276,10 +279,13 @@ void reporter_printstats( Transfer_Info *stats ) {
 	    }
 	} else {
 	    printf( report_bw_jitter_loss_format, stats->transferID,
-		    stats->startTime, stats->endTime,
+		    (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+		    (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
 		    buffer, &buffer[sizeof(buffer)/2],
-		    stats->jitter*1000.0, stats->cntError, stats->cntDatagrams,
-		    (100.0 * stats->cntError) / stats->cntDatagrams);
+		    (int)(stats->jitter*1000), (int)((stats->jitter*1000 - (int)(stats->jitter*1000)) * 1000),
+		    stats->cntError, stats->cntDatagrams,
+		    (int)((100.0 * stats->cntError) / stats->cntDatagrams),
+		    (int)(((100.0 * stats->cntError) / stats->cntDatagrams - (int)((100.0 * stats->cntError) / stats->cntDatagrams)) * 100));
 	}
 	if ( stats->cntOutofOrder > 0 ) {
 	    printf( report_outoforder,
@@ -345,14 +351,18 @@ void reporter_multistats( Transfer_Info *stats ) {
 	if (stats->mUDP == (char)kMode_Server) {
         // UDP Reporting
 	    printf(report_sum_bw_jitter_loss_format,
-                stats->startTime, stats->endTime,
+                (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+                (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
                 buffer, &buffer[sizeof(buffer)/2],
-                stats->jitter*1000.0, stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams);
+                (int)(stats->jitter*1000), (int)((stats->jitter*1000 - (int)(stats->jitter*1000)) * 1000),
+                stats->cntError, stats->cntDatagrams,
+		   (int)((100.0 * stats->cntError) / stats->cntDatagrams),
+		   (int)(((100.0 * stats->cntError) / stats->cntDatagrams - (int)((100.0 * stats->cntError) / stats->cntDatagrams)) * 100));
 	} else {
         // TCP Reporting
 	    printf(report_sum_bw_format,
-		    stats->startTime, stats->endTime,
+		    (int)stats->startTime, (int)((stats->startTime - (int)stats->startTime) * 10),
+		    (int)stats->endTime, (int)((stats->endTime - (int)stats->endTime) * 10),
 		    buffer, &buffer[sizeof(buffer)/2]);
 	}
     } else {
@@ -482,7 +492,10 @@ void reporter_reportsettings( ReporterData *data ) {
 #ifdef HAVE_KALMAN
 		printf(client_datagram_size_kalman, data->mBufLen, delay_target);
 #else
-		printf(client_datagram_size, data->mBufLen, delay_target);
+			// Convert floating point to integer parts for decimal display
+			int delay_int = (int)delay_target;
+			int delay_frac = (int)((delay_target - delay_int) * 100);
+			printf(client_datagram_size, data->mBufLen, delay_int, delay_frac);
 #endif
 	    } else {
 		printf(server_datagram_size, data->mBufLen);

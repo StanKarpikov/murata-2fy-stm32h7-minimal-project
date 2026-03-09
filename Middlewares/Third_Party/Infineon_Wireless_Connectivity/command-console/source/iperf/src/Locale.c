@@ -302,7 +302,7 @@ const char join_multicast_sg_dev[] =
 "Joining multicast (S,G)=%s,%s w/iface %s\n";
 
 const char client_datagram_size[] =
-"Sending %d byte datagrams, IPG target: %4.2f us\n";
+"Sending %d byte datagrams, IPG target: %d.%02d us\n";
 
 const char client_datagram_size_tx_sync[] =
 "Sending %d byte datagrams, tx-sync periodic: %4.2f ms\n";
@@ -339,20 +339,20 @@ const char report_bw_header[] =
 "[ ID] Interval       Transfer     Bandwidth\n";
 
 const char report_bw_format[] =
-"[%3d] %4.1f-%4.1f sec  %ss  %ss/sec\n";
+"[%3d] %d.%d-%d.%d sec  %ss  %ss/sec\n";
 
 const char report_sum_bw_format[] =
-"[SUM] %4.1f-%4.1f sec  %ss  %ss/sec\n";
+"[SUM] %d.%d-%d.%d sec  %ss  %ss/sec\n";
 
 const char report_bw_jitter_loss_header[] =
 "[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams\n";
 
 /* IPERF_MODIFIED Start */
 const char report_bw_jitter_loss_format[] =
-"[%3d] %4.1f-%4.1f sec  %ss  %ss/sec  %6.3f ms %4ld/%5ld (%.2g%%)\n";
+"[%3d] %d.%d-%d.%d sec  %ss  %ss/sec  %d.%03d ms %4ld/%5ld (%d.%02d%%)\n";
 
 const char report_sum_bw_jitter_loss_format[] =
-"[SUM] %4.1f-%4.1f sec  %ss  %ss/sec  %6.3f ms %4d/%5d (%.2g%%)\n";
+"[SUM] %d.%d-%d.%d sec  %ss  %ss/sec  %d.%03d ms %4d/%5d (%d.%02d%%)\n";
 /* IPERF_MODIFIED End */
 
 /* -------------------------------------------------------------------

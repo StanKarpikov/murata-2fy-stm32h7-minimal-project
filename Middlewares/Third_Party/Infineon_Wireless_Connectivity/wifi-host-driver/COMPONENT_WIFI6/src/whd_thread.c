@@ -41,6 +41,7 @@
 #include "whd_int.h"
 #include "whd_chip.h"
 #include "whd_poll.h"
+#include "whd_utils.h"
 #ifndef PROTO_MSGBUF
 #include "whd_sdpcm.h"
 #else

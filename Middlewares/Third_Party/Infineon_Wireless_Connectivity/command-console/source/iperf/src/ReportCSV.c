@@ -149,7 +149,7 @@ void CSV_stats( Transfer_Info *stats ) {
                 (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
     }
     if ( stats->free == 1 && stats->reserved_delay != NULL ) {
-        free( stats->reserved_delay );
+        vPortFree( stats->reserved_delay );
     }
 }
 
@@ -159,7 +159,7 @@ void *CSV_peer( Connection_Info *stats, int ID ) {
     char local_addr[ REPORT_ADDRLEN ];
     char remote_addr[ REPORT_ADDRLEN ];
     /* IPERF_MODIFIED Start */
-    char *buf = (char*) malloc( REPORT_ADDRLEN * 2 + 10 );
+    char *buf = (char*) pvPortMalloc( REPORT_ADDRLEN * 2 + 10 );
     FAIL( buf == NULL, ( "No memory for buffer buf.\n" ), NULL );
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( buf, REPORT_ADDRLEN * 2 + 10 ) );
     /* IPERF_MODIFIED End */

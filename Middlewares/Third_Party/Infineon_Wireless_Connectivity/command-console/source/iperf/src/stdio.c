@@ -150,13 +150,13 @@ double byte_atof( const char *inString ) {
  * Gg, Mm, Kk are giga, mega, kilo respectively
  * ------------------------------------------------------------------- */
 intmax_t byte_atoi( const char *inString ) {
-	double theNum = 0.0;
+	int theNum = 0.0;
 
     assert( inString != NULL );
 
     /* scan the number and any suffices */
     /* IPERF_MODIFIED Start */
-    sscanf( inString, "%lf", &theNum );
+    sscanf( inString, "%d", &theNum );
     /* IPERF_MODIFIED End */
 
     /* convert according to [Gg Mm Kk] */
@@ -354,19 +354,27 @@ void byte_snprintf( char* outString, int inLen,
         suffix = kLabel_Byte[ conv ];
     }
 
-    /* print such that we always fit in 4 places */
+    /* print such that we always fit in 4 places using integer formats */
+    int whole_part, decimal_part1, decimal_part2;
+
     if ( inNum < 9.995 ) {          /* 9.995 would be rounded to 10.0 */
-        format = "%4.2f %s";        /* #.## */
+        whole_part = (int)inNum;
+        decimal_part1 = (int)((inNum - whole_part) * 10);
+        decimal_part2 = (int)((inNum - whole_part) * 100) % 10;
+        snprintf( outString, inLen, "%d.%d%d %s", whole_part, decimal_part1, decimal_part2, suffix );
     } else if ( inNum < 99.95 ) {   /* 99.95 would be rounded to 100 */
-        format = "%4.1f %s";        /* ##.# */
+        whole_part = (int)inNum;
+        decimal_part1 = (int)((inNum - whole_part) * 10);
+        snprintf( outString, inLen, "%d.%d %s", whole_part, decimal_part1, suffix );
     } else if ( inNum < 999.5 ) {   /* 999.5 would be rounded to 1000 */
-	format = "%4.0f %s";        /*  ### */
+        whole_part = (int)(inNum + 0.5);
+        snprintf( outString, inLen, "%d %s", whole_part, suffix );
     } else {                        /* 1000-1024 fits in 4 places
 				     * If not using Adaptive sizes then
 				     * this code will not control spaces*/
-        format = "%4.0f %s";        /* #### */
+        whole_part = (int)(inNum + 0.5);
+        snprintf( outString, inLen, "%d %s", whole_part, suffix );
     }
-    snprintf( outString, inLen, format, inNum, suffix );
 } /* end byte_snprintf */
 
 /* IPERF_MODIFIED Start */

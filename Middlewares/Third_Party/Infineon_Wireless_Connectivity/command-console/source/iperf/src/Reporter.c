@@ -100,6 +100,7 @@
 #include "PerfSocket.hpp"
 #include "SocketAddr.h"
 #include "histogram.h"
+#include "portable.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -210,10 +211,13 @@ MultiHeader* InitMulti( thread_Settings *agent, int inID) {
 	    }
 	    // printf ("Alloc %d multislots\n", num_multi_slots);
             /* IPERF_MODIFIED Start */
-            multihdr = (MultiHeader*)calloc((sizeof(MultiHeader) +  sizeof(ReporterData) +
-                       num_multi_slots * sizeof(Transfer_Info)), sizeof(char*));
+            multihdr = (MultiHeader*)pvPortMalloc((sizeof(MultiHeader) +  sizeof(ReporterData) +
+                       num_multi_slots * sizeof(Transfer_Info))* sizeof(char*));
+                       memset(multihdr, 0, (sizeof(MultiHeader) +  sizeof(ReporterData) +
+                       num_multi_slots * sizeof(Transfer_Info))* sizeof(char*));
         } else {
-            multihdr = (MultiHeader*)calloc(sizeof(MultiHeader), sizeof(char*));
+            multihdr = (MultiHeader*)pvPortMalloc(sizeof(MultiHeader)* sizeof(char*));
+            memset(multihdr, 0, sizeof(MultiHeader)* sizeof(char*));
             /* IPERF_MODIFIED End */
         }
         if ( multihdr != NULL ) {
@@ -401,8 +405,10 @@ void InitDataReport(thread_Settings *mSettings) {
      * Create in one big chunk
      */
     /* IPERF_MODIFIED Start */
-    reporthdr = (ReportHeader*)calloc( sizeof(ReportHeader) +
-            NUM_REPORT_STRUCTS * sizeof(ReportStruct), sizeof(char*));
+    reporthdr = (ReportHeader*)pvPortMalloc( sizeof(ReportHeader) +
+            NUM_REPORT_STRUCTS * sizeof(ReportStruct)* sizeof(char*));
+           memset(reporthdr, 0,  sizeof(ReportHeader) +
+            NUM_REPORT_STRUCTS * sizeof(ReportStruct)* sizeof(char*));
     FAIL( reporthdr == NULL, ( "No memory for ReportHeader reporthdr.\n" ), agent );
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( reporthdr, sizeof( ReportHeader ) + NUM_REPORT_STRUCTS * sizeof( ReportStruct ) ) );
     /* IPERF_MODIFIED End */
@@ -492,7 +498,8 @@ void InitConnectionReport (thread_Settings *mSettings) {
 	 * the connection report so allocate a minimal one
 	 */
     /* IPERF_MODIFIED Start */
-    reporthdr = (ReportHeader*)calloc( sizeof(ReportHeader), sizeof(char*) );
+    reporthdr = (ReportHeader*)pvPortMalloc( sizeof(ReportHeader)* sizeof(char*) );
+    memset(reporthdr, 0, sizeof(ReportHeader)* sizeof(char*));
     /* IPERF_MODIFIED End */
 	if (reporthdr == NULL ) {
 	    FAIL(1, "Out of Memory!!\n", mSettings);
@@ -650,7 +657,7 @@ void CloseReport( ReportHeader *agent, ReportStruct *packet ) {
         /* IPERF_MODIFIED Start */
         if ( need_free != 0 ) {
             IPERF_DEBUGF( MEMFREE_DEBUG | IPERF_DBG_TRACE, IPERF_MEMFREE_MSG( agent ) );
-            free( agent );
+            vPortFree( agent );
         }
         /* IPERF_MODIFIED End */
     }
@@ -735,7 +742,8 @@ void ReportSettings( thread_Settings *agent ) {
          * Create in one big chunk
          */
         /* IPERF_MODIFIED Start */
-        ReportHeader *reporthdr = (ReportHeader*)calloc( sizeof(ReportHeader), sizeof(char*));
+        ReportHeader *reporthdr = (ReportHeader*)pvPortMalloc( sizeof(ReportHeader)* sizeof(char*));
+        memset(reporthdr, 0,  sizeof(ReportHeader)* sizeof(char*));
         FAIL( reporthdr == NULL, ( "No memory for ReportHeader reporthdr.\n" ), agent );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( reporthdr, sizeof( ReportHeader ) ) );
         /* IPERF_MODIFIED End */
@@ -822,7 +830,8 @@ void ReportServerUDP( thread_Settings *agent, server_hdr *server ) {
 	 * Create in one big chunk
 	 */
     /* IPERF_MODIFIED Start */
-    ReportHeader *reporthdr = (ReportHeader *)calloc( sizeof(ReportHeader), sizeof(char*));
+    ReportHeader *reporthdr = (ReportHeader *)pvPortMalloc( sizeof(ReportHeader)* sizeof(char*));
+    memset(reporthdr, 0, sizeof(ReportHeader)* sizeof(char*));
 
     FAIL( reporthdr == NULL, ( "No memory for ReportHeader reporthdr.\n" ), agent );
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( reporthdr, sizeof( ReportHeader ) ) );
@@ -998,7 +1007,7 @@ again:
                 /* IPERF_MODIFIED Start */
                 IPERF_DEBUGF( MEMFREE_DEBUG | IPERF_DBG_TRACE, IPERF_MEMFREE_MSG( temp ) );
                 /* IPERF_MODIFIED End */
-                free( temp );
+                vPortFree( temp );
                 Condition_Unlock ( ReportCond );
                 /* IPERF_MODIFIED Start */
                 IPERF_DEBUGF( REPORTER_DEBUG | CONDITION_DEBUG | IPERF_DBG_TRACE, ( "Reporter is signaling report done condition.\n" ) );
@@ -1082,7 +1091,7 @@ int process_report ( ReportHeader *report ) {
 		histogram_delete(report->report.info.framelatency_histogram);
 	    }
 #endif
-            free( report );
+            vPortFree( report );
             /* IPERF_MODIFIED Start */
             return 1;
             /* IPERF_MODIFIED End */
@@ -1124,7 +1133,7 @@ int reporter_process_report ( ReportHeader *reporthdr ) {
 		histogram_delete(temp->report.info.framelatency_histogram);
 	    }
 #endif
-            free( temp );
+            vPortFree( temp );
         }
     }
 

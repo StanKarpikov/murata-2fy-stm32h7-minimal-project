@@ -133,7 +133,7 @@ Server::Server( thread_Settings *inSettings ) {
 #endif
     // initialize buffer, length checking done by the Listener
     /* IPERF_MODIFIED Start */
-    mBuf = (char*) malloc( mSettings->mBufLen );
+    mBuf = (char*) pvPortMalloc( mSettings->mBufLen );
     /* IPERF_MODIFIED End */
     FAIL_errno( mBuf == NULL, "No memory for buffer\n", mSettings );
     /* IPERF_MODIFIED Start */
@@ -320,7 +320,7 @@ void Server::InitTrafficLoop (void) {
     InitReport(mSettings);
     PostFirstReport(mSettings);
     /* IPERF_MODIFIED Start */
-    reportstruct = (ReportStruct*) malloc( sizeof( ReportStruct ) );
+    reportstruct = (ReportStruct*) pvPortMalloc( sizeof( ReportStruct ) );
     memset(reportstruct, 0, sizeof(ReportStruct));
     /* IPERF_MODIFIED End */
     FAIL(reportstruct == NULL, "Out of memory! Closing server thread\n", mSettings);

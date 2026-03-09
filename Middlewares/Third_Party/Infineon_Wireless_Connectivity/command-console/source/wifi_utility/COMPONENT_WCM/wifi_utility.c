@@ -35,6 +35,11 @@
  *  @brief This file contains the definition of Wi-Fi commands and implementation of the
  *  command handlers.
  */
+#include "cy_secure_sockets.h"
+#include "cyabs_rtos.h"
+#include "whd_chip.h"
+#include "whd_types_int.h"
+#include "whd_wlioctl.h"
 #ifndef DISABLE_COMMAND_CONSOLE_WIFI
 #include "command_console.h"
 #include "wifi_utility.h"
@@ -77,10 +82,19 @@ extern "C" {
 #define WIFI_WEAK_FUNC           __attribute__((weak))
 #endif
 
+int global_iface = CY_SOCKET_STA_INTERFACE;
+
+extern whd_interface_t whd_ifs[2];
+
+whd_interface_t whd_if;
+
 /******************************************************
  *               External Function Declarations
  ******************************************************/
 extern char *strtok_r( char *, const char *, char ** );
+
+// Forward declaration for iperf function
+extern int iperf(int argc, char *argv[], tlv_buffer_t** data);
 
 /******************************************************
  *               Function Declarations
@@ -95,6 +109,15 @@ int get_rssi           (int argc, char* argv[], tlv_buffer_t** data);
 int start_ap           (int argc, char* argv[], tlv_buffer_t** data);
 int stop_ap            (int argc, char* argv[], tlv_buffer_t** data);
 int get_sta_ifconfig   (int argc, char* argv[], tlv_buffer_t** data);
+int start_def_ap       (int argc, char* argv[], tlv_buffer_t** data);
+int start_def_ap2      (int argc, char* argv[], tlv_buffer_t** data);
+int start_def_ap5      (int argc, char* argv[], tlv_buffer_t** data);
+int start_def_sta      (int argc, char* argv[], tlv_buffer_t** data);
+int start_def_sta2     (int argc, char* argv[], tlv_buffer_t** data);
+int iperf_client_def   (int argc, char* argv[], tlv_buffer_t** data);
+int iperf_server_def   (int argc, char* argv[], tlv_buffer_t** data);
+int disable_iovar_pre  (int argc, char* argv[], tlv_buffer_t** data);
+int disable_iovar_post (int argc, char* argv[], tlv_buffer_t** data);
 
 #define WIFI_COMMANDS_LIMITED_SET \
     { (char*) "join",               join,             2, NULL, NULL, (char*) "<ssid> <open|wpa_aes|wpa_tkip|wpa2|wpa2_aes|wpa2_aes_sha256|wpa2_tkip|wpa2_fbt|wpa3|wpa3_wpa2> [password] [channel] [band<0=auto,1=5G,2=2.4G,3=6G>]"ESCAPE_SPACE_PROMPT, (char*) "Join an AP.(This command is deprecated and it will be removed in the future. Please use wifi_join command)"}, \
@@ -112,6 +135,15 @@ int get_sta_ifconfig   (int argc, char* argv[], tlv_buffer_t** data);
       (char*) "Start AP mode."}, \
     { (char*) "stop_ap",            stop_ap,          0, NULL, NULL, (char*) "", (char*) "Stop AP mode."}, \
     { (char*) "get_sta_ifconfig",   get_sta_ifconfig, 0, NULL, NULL, (char*) "", (char*) "Get IP & MAC address of STA."}, \
+    { (char*) "ap",                 start_def_ap,     0, NULL, NULL, (char*) "", (char*) "Start AP with default parameters"}, \
+    { (char*) "ap2",                start_def_ap2,    0, NULL, NULL, (char*) "", (char*) "Start AP with default parameters 2.4GHz"}, \
+    { (char*) "ap5",                start_def_ap5,    0, NULL, NULL, (char*) "", (char*) "Start AP with default parameters 5GHz"}, \
+    { (char*) "sta",                start_def_sta,    0, NULL, NULL, (char*) "", (char*) "Start STA with default parameters"}, \
+    { (char*) "sta2",               start_def_sta2,   0, NULL, NULL, (char*) "", (char*) "Start STA with default parameters WPA2"}, \
+    { (char*) "dis_pre",            disable_iovar_pre, 0, NULL, NULL, (char*) "", (char*) "Disable IOVARs pre join"}, \
+    { (char*) "dis_post",           disable_iovar_post,0, NULL, NULL, (char*) "", (char*) "Disable IOVARs post join"}, \
+    { (char*) "pfc",                iperf_client_def, 0, NULL, NULL, (char*) "", (char*) "Start iperf client with default parameters (iperf -c 192.168.2.2 -u -b 500pps -t 0)"}, \
+    { (char*) "pfs",                iperf_server_def, 0, NULL, NULL, (char*) "", (char*) "Start iperf server with default parameters (iperf -s -u)"}, \
 
 /******************************************************
  *                    Constants
@@ -146,7 +178,7 @@ static int wifi_utils_str_to_band(char* channel_str, char* band_str, cy_wcm_wifi
 static cy_wcm_security_t wifi_utils_str_to_authtype(char* auth_str);
 static const char* wifi_utils_authtype_to_str(cy_wcm_security_t sec);
 
-static void print_ip4(uint32_t ip);
+void print_ip4(uint32_t ip);
 static cy_rslt_t start_ap_common(const char *ssid, const char *key, uint8_t channel, cy_wcm_security_t security_type, cy_wcm_custom_ie_info_t *custom_ie, cy_wcm_wifi_band_t band);
 
 /******************************************************
@@ -154,9 +186,9 @@ static cy_rslt_t start_ap_common(const char *ssid, const char *key, uint8_t chan
  ******************************************************/
 static const cy_wcm_ip_setting_t ap_ip_settings =
 {
-    INITIALISER_IPV4_ADDRESS1(.ip_address, MAKE_IPV4_ADDRESS1(192, 168, 0, 2)),
+    INITIALISER_IPV4_ADDRESS1(.ip_address, MAKE_IPV4_ADDRESS1(192, 168, 2, 1)),
     INITIALISER_IPV4_ADDRESS1(.netmask, MAKE_IPV4_ADDRESS1(255, 255, 255, 0)),
-    INITIALISER_IPV4_ADDRESS1(.gateway, MAKE_IPV4_ADDRESS1(192, 168, 0, 2)),
+    INITIALISER_IPV4_ADDRESS1(.gateway, MAKE_IPV4_ADDRESS1(192, 168, 2, 1)),
 };
 
 /******************************************************
@@ -184,6 +216,9 @@ WIFI_WEAK_FUNC cy_rslt_t wifi_utility_init(void)
 
 int join(int argc, char* argv[], tlv_buffer_t** data)
 {
+    global_iface = CY_SOCKET_STA_INTERFACE;
+    whd_if = whd_ifs[CY_WCM_INTERFACE_TYPE_STA];
+    
     cy_rslt_t res;
     int result;
     cy_wcm_connect_params_t connect_params;
@@ -327,6 +362,9 @@ int get_rssi(int argc, char* argv[], tlv_buffer_t** data)
 
 int start_ap(int argc, char* argv[], tlv_buffer_t** data)
 {
+    global_iface = CY_SOCKET_AP_INTERFACE;
+    whd_if = whd_ifs[CY_WCM_INTERFACE_TYPE_AP];
+
     char *ssid = argv[1];
     cy_wcm_security_t auth_type = wifi_utils_str_to_authtype(argv[2]);
     char *security_key = argv[3];
@@ -342,6 +380,205 @@ int start_ap(int argc, char* argv[], tlv_buffer_t** data)
     }
     WIFI_INFO(("start_ap successful!\n"));
     return 0;
+}
+
+int start_def_ap (int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default AP parameters
+    char* def_ap_argv[] = {
+        "start_ap",        // command name
+        "ApTest",        // SSID
+        "wpa3",            // security type
+        "12345678",        // password
+        "149",             // channel
+        "3",               // band (6G)
+        "20",              // bandwidth
+        "192.168.2.1",     // IP address
+        "255.255.255.0"    // netmask
+    };
+    int def_ap_argc = sizeof(def_ap_argv) / sizeof(def_ap_argv[0]);
+
+    // Call start_ap with default parameters
+    return start_ap(def_ap_argc, def_ap_argv, data);
+}
+
+int start_def_ap2 (int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default AP parameters
+    char* def_ap_argv[] = {
+        "start_ap",        // command name
+        "ApTest",        // SSID
+        "wpa3",            // security type
+        "12345678",        // password
+        "10",              // channel
+        "2",               // band (2.4G)
+        "20",              // bandwidth
+        "192.168.2.1",     // IP address
+        "255.255.255.0"    // netmask
+    };
+    int def_ap_argc = sizeof(def_ap_argv) / sizeof(def_ap_argv[0]);
+
+    // Call start_ap with default parameters
+    return start_ap(def_ap_argc, def_ap_argv, data);
+}
+
+int start_def_ap5 (int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default AP parameters
+    char* def_ap_argv[] = {
+        "start_ap",        // command name
+        "ApTest",        // SSID
+        "wpa3",            // security type
+        "12345678",        // password
+        "48",              // channel
+        "1",               // band (5G)
+        "20",              // bandwidth
+        "192.168.2.1",     // IP address
+        "255.255.255.0"    // netmask
+    };
+    int def_ap_argc = sizeof(def_ap_argv) / sizeof(def_ap_argv[0]);
+
+    // Call start_ap with default parameters
+    return start_ap(def_ap_argc, def_ap_argv, data);
+}
+
+int start_def_sta (int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default STA parameters
+    char* def_sta_argv[] = {
+        "wifi_join",       // command name
+        "ApTest",        // SSID
+        "wpa3",            // security type
+        "12345678"         // password
+    };
+    int def_sta_argc = sizeof(def_sta_argv) / sizeof(def_sta_argv[0]);
+
+    // Call join (which handles wifi_join) with default parameters
+    return join(def_sta_argc, def_sta_argv, data);
+}
+
+#include "whd.h"
+
+int disable_iovar_pre (int argc, char* argv[], tlv_buffer_t** data)
+{
+    whd_result_t result;
+
+    /* Power save */
+    result = whd_wifi_set_ioctl_value( whd_if, WLC_SET_PM, 0 );
+    printf("WLC_SET_PM = 0, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_MPC, 0 );
+    printf("IOVAR_STR_MPC = 0, result %ld 0x%08lX\n", result, result);
+
+    /* Disable Autocountry */
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_AUTOCOUNTRY, 0 );
+    printf("IOVAR_STR_AUTOCOUNTRY = 0, result %ld 0x%08lX\n", result, result);
+
+    /* Disable GLOM */
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_TX_GLOM, 0 );
+    printf("IOVAR_STR_TX_GLOM = 0, result %ld 0x%08lX\n", result, result);
+
+    return 0;
+}
+
+int disable_iovar_post (int argc, char* argv[], tlv_buffer_t** data)
+{
+    whd_result_t result;
+
+    /* Roam scans */
+    result = whd_wifi_set_iovar_value(whd_if, IOVAR_STR_ROAM_OFF, 1);
+    printf("IOVAR_STR_ROAM_OFF = 1, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_ioctl_value(whd_if, WLC_SET_ROAM_SCAN_PERIOD, 0);
+    printf("WLC_SET_ROAM_SCAN_PERIOD = 0, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_ioctl_value(whd_if, WLC_SET_SCANSUPPRESS, 1 );
+    printf("WLC_SET_SCANSUPPRESS = 1, result %ld 0x%08lX\n", result, result);
+    
+    /* Power save */
+    result = whd_wifi_set_ioctl_value( whd_if, WLC_SET_PM, 0 );
+    printf("WLC_SET_PM = 0, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_MPC, 0 );
+    printf("IOVAR_STR_MPC = 0, result %ld 0x%08lX\n", result, result);
+
+    /* PFN/PNO */
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_PNO_CLEAR,      0 );
+    printf("IOVAR_STR_PNO_CLEAR = 0, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_PNO_ON,         0 );
+    printf("IOVAR_STR_PNO_ON = 0, result %ld 0x%08lX\n", result, result);
+
+    /* Disable Autocountry */
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_AUTOCOUNTRY, 0 );
+    printf("IOVAR_STR_AUTOCOUNTRY = 0, result %ld 0x%08lX\n", result, result);
+
+    /* Disable ARP Offload */
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_ARPOE, 0 );
+    printf("IOVAR_STR_ARPOE = 0, result %ld 0x%08lX\n", result, result);
+
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_SCAN_ASSOC_TIME,   20 );
+    printf("IOVAR_STR_SCAN_ASSOC_TIME = 20, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_SCAN_UNASSOC_TIME, 20 );
+    printf("IOVAR_STR_SCAN_UNASSOC_TIME = 20, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_SCAN_PASSIVE_TIME, 20 );
+    printf("IOVAR_STR_SCAN_PASSIVE_TIME = 20, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_SCAN_HOME_TIME,    20 );
+    printf("IOVAR_STR_SCAN_HOME_TIME = 20, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_SCAN_NPROBES,       1 );
+    printf("IOVAR_STR_SCAN_NPROBES = 1, result %ld 0x%08lX\n", result, result);
+
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_LISTEN_INTERVAL_BEACON, 1 );
+    printf("IOVAR_STR_LISTEN_INTERVAL_BEACON = 1, result %ld 0x%08lX\n", result, result);
+    result = whd_wifi_set_iovar_value( whd_if, IOVAR_STR_LISTEN_INTERVAL_DTIM,   1 );
+    printf("IOVAR_STR_LISTEN_INTERVAL_DTIM = 1, result %ld 0x%08lX\n", result, result);
+
+    return 0;
+}
+
+int start_def_sta2 (int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default STA parameters
+    char* def_sta_argv[] = {
+        "wifi_join",       // command name
+        "ApTest",        // SSID
+        "wpa2",            // security type
+        "12345678"         // password
+    };
+    int def_sta_argc = sizeof(def_sta_argv) / sizeof(def_sta_argv[0]);
+
+    // Call join (which handles wifi_join) with default parameters
+    return join(def_sta_argc, def_sta_argv, data);
+}
+
+int iperf_client_def(int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default iperf client parameters: iperf -c 192.168.2.2 -u -b 250pps -t 1200
+    char* iperf_client_argv[] = {
+        "iperf",           // command name
+        "-c",              // client mode
+        "192.168.2.2",     // server IP address
+        "-u",              // UDP mode
+        "-b",              // bandwidth
+        "500pps",          // 250 packets per second
+        "-t",              // time
+        "2900"             // run for 1200 seconds
+    };
+    int iperf_client_argc = sizeof(iperf_client_argv) / sizeof(iperf_client_argv[0]);
+
+    WIFI_INFO(("Starting iperf client with default parameters: iperf -c 192.168.2.2 -u -b 250pps -t 2100\n"));
+
+    return iperf(iperf_client_argc, iperf_client_argv, data);
+}
+
+int iperf_server_def(int argc, char* argv[], tlv_buffer_t** data)
+{
+    // Default iperf server parameters: iperf -s -u
+    char* iperf_server_argv[] = {
+        "iperf",           // command name
+        "-s",              // server mode
+        "-u"               // UDP mode
+    };
+    int iperf_server_argc = sizeof(iperf_server_argv) / sizeof(iperf_server_argv[0]);
+
+    WIFI_INFO(("Starting iperf server with default parameters: iperf -s -u\n"));
+
+    return iperf(iperf_server_argc, iperf_server_argv, data);
 }
 
 int stop_ap(int argc, char* argv[], tlv_buffer_t** data)
@@ -521,6 +758,17 @@ int convert_to_wcm_connect_params(int argc, char* argv[], cy_wcm_connect_params_
     {
         return -1;
     }
+
+    static cy_wcm_ip_setting_t static_ip_settings = { 0 };
+
+    static_ip_settings.ip_address.version = CY_WCM_IP_VER_V4;
+    static_ip_settings.ip_address.ip.v4   = MAKE_IPV4_ADDRESS1(192, 168, 2, 2);
+    static_ip_settings.gateway.version    = CY_WCM_IP_VER_V4;
+    static_ip_settings.gateway.ip.v4      = MAKE_IPV4_ADDRESS1(192, 168, 2, 1);
+    static_ip_settings.netmask.version    = CY_WCM_IP_VER_V4;
+    static_ip_settings.netmask.ip.v4      = MAKE_IPV4_ADDRESS1(255, 255, 255, 0);
+
+    connect_params->static_ip_settings = &static_ip_settings;
     return 0;
 }
 
@@ -709,7 +957,7 @@ const char* wifi_utils_authtype_to_str(cy_wcm_security_t sec)
     }
 }
 
-static void print_ip4(uint32_t ip)
+void print_ip4(uint32_t ip)
 {
     unsigned char bytes[CMD_CONSOLE_IPV4_ADDR_SIZE];
     bytes[0] = ip & 0xFF;

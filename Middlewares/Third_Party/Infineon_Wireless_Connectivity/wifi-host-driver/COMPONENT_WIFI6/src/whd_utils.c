@@ -21,6 +21,7 @@
  * Utilities to help do specialized (not general purpose) WHD specific things
  */
 #include <stdlib.h>
+#include "FreeRTOS.h"
 #include "whd_debug.h"
 #include "whd_utils.h"
 #include "whd_chip_constants.h"
@@ -1250,17 +1251,19 @@ inline void whd_mem_memset (void *buf, int val, size_t len)
 
 inline void *whd_mem_malloc (size_t size)
 {
-    return malloc(size);
+    return pvPortMalloc(size);
 }
 
 inline void *whd_mem_calloc(size_t nitems, size_t size)
 {
-    return calloc(nitems, size);
+    void* pointer = pvPortMalloc(nitems * size);
+    memset(pointer, 0, nitems*size);
+    return pointer;
 }
 
 inline void whd_mem_free(void *ptr)
 {
-    free(ptr);
+    vPortFree(ptr);
 }
 
 #endif /* ifndef WHD_USE_CUSTOM_MALLOC_IMPL */

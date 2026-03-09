@@ -23,6 +23,7 @@
 #include "whd_chip.h"
 #include "whd_events_int.h"
 #include "whd_types_int.h"
+#include "whd_debug.h"
 
 #ifdef PROTO_MSGBUF
 #include "whd_hw.h"

@@ -297,6 +297,8 @@ cy_rslt_t cyhal_uart_configure(cyhal_uart_t* obj, const cyhal_uart_cfg_t* cfg)
     obj->huart->Init.Parity     = _stm32_cyhal_uart_convert_parity(cfg->parity);
     obj->huart->Init.StopBits   = _stm32_cyhal_uart_convert_stopbits(cfg->stop_bits);
     obj->huart->Init.WordLength = _stm32_cyhal_uart_convert_wordlength(cfg->data_bits);
+    obj->huart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    obj->huart->AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
 
     return ((UART_SetConfig(obj->huart) !=
              HAL_OK) ? CYHAL_UART_RSLT_ERR_HAL_ERROR : CY_RSLT_SUCCESS);

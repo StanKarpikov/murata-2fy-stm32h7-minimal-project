@@ -31,7 +31,6 @@
             ],
             "symbolFiles": [
                 "${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
-                "${workspaceRoot}/bootloader/bootloader_usb/build/Debug/qspi_bootloader.elf"
             ],
             "liveWatch": {
                 "enabled": true,

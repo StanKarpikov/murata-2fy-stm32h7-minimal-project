@@ -408,14 +408,14 @@ void Settings_Initialize( thread_Settings *main ) {
 
 void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
     /* IPERF_MODIFIED Start */
-    *into = (thread_Settings*) malloc( sizeof( thread_Settings ) );
+    *into = (thread_Settings*) pvPortMalloc( sizeof( thread_Settings ) );
     FAIL_errno( *into == NULL, ( "No memory for thread_Settings into.\n" ), from );
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( *into, sizeof( thread_Settings ) ) );
     /* IPERF_MODIFIED End */
     memcpy( *into, from, sizeof(thread_Settings) );
     if ( from->mHost != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mHost = (char*) malloc( strlen(from->mHost) + 1 );
+        (*into)->mHost = (char*) pvPortMalloc( strlen(from->mHost) + 1 );
         FAIL_errno( (*into)->mHost == NULL, ( "No memory for mHost buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mHost, strlen( from->mHost ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -426,7 +426,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
 /* IPERF_MODIFIED End */
     if ( from->mOutputFileName != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mOutputFileName = (char*) malloc( strlen(from->mOutputFileName) + 1 );
+        (*into)->mOutputFileName = (char*) pvPortMalloc( strlen(from->mOutputFileName) + 1 );
         FAIL_errno( (*into)->mOutputFileName == NULL, ( "No memory for mOutputFileName buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mOutputFileName, strlen( from->mOutputFileName ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -437,7 +437,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
 /* IPERF_MODIFIED End */
     if ( from->mLocalhost != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mLocalhost = (char*) malloc( strlen(from->mLocalhost) + 1 );
+        (*into)->mLocalhost = (char*) pvPortMalloc( strlen(from->mLocalhost) + 1 );
         FAIL_errno( (*into)->mLocalhost == NULL, ( "No memory for mLocalhost buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mLocalhost, strlen( from->mLocalhost ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -448,7 +448,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
 /* IPERF_MODIFIED End */
     if ( from->mFileName != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mFileName = (char*) malloc( strlen(from->mFileName) + 1 );
+        (*into)->mFileName = (char*) pvPortMalloc( strlen(from->mFileName) + 1 );
         FAIL_errno( (*into)->mFileName == NULL, ( "No memory for mFileName buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mFileName, strlen( from->mFileName ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -459,7 +459,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
 /* IPERF_MODIFIED End */
     if ( from->mUDPHistogramStr != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mUDPHistogramStr = (char*) malloc( strlen(from->mUDPHistogramStr) + 1);
+        (*into)->mUDPHistogramStr = (char*) pvPortMalloc( strlen(from->mUDPHistogramStr) + 1);
         FAIL_errno( (*into)->mUDPHistogramStr == NULL, ( "No memory for mUDPHistogramStr buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mUDPHistogramStr, strlen( from->mUDPHistogramStr ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -467,7 +467,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
     }
     if ( from->mSSMMulticastStr != NULL ) {
         /* IPERF_MODIFIED Start */
-	    (*into)->mSSMMulticastStr = (char*) malloc( strlen(from->mSSMMulticastStr) + 1);
+	    (*into)->mSSMMulticastStr = (char*) pvPortMalloc( strlen(from->mSSMMulticastStr) + 1);
         FAIL_errno( (*into)->mSSMMulticastStr == NULL, ( "No memory for mSSMMulticastStr buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mSSMMulticastStr, strlen( from->mSSMMulticastStr ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -475,7 +475,7 @@ void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
     }
     if ( from->mIfrname != NULL ) {
         /* IPERF_MODIFIED Start */
-        (*into)->mIfrname = (char*) malloc( strlen(from->mIfrname) + 1);
+        (*into)->mIfrname = (char*) pvPortMalloc( strlen(from->mIfrname) + 1);
         FAIL_errno( (*into)->mIfrname == NULL, ( "No memory for mIfrname buffer.\n" ), from );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*into)->mIfrname, strlen( from->mIfrname ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -593,6 +593,7 @@ getopt_reset( );
  * or from environment variables.
  * ------------------------------------------------------------------- */
 
+__attribute__((section(".flash_text")))
 void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtSettings ) {
     char *results;
     switch ( option ) {
@@ -623,7 +624,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 	    break;
         case 'c': // client mode w/ server host to connect to
             /* IPERF_MODIFIED Start */
-            mExtSettings->mHost = (char*) malloc( strlen( optarg ) + 1 );
+            mExtSettings->mHost = (char*) pvPortMalloc( strlen( optarg ) + 1 );
             FAIL( mExtSettings->mHost == NULL, ( "No memory for mHost buffer.\n" ), mExtSettings );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mHost, strlen( optarg ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -730,7 +731,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 /* IPERF_MODIFIED End */
             unsetSTDOUT( mExtSettings );
             /* IPERF_MODIFIED Start */
-            mExtSettings->mOutputFileName = (char*) malloc( strlen(optarg)+1 );
+            mExtSettings->mOutputFileName = (char*) pvPortMalloc( strlen(optarg)+1 );
             FAIL( mExtSettings->mOutputFileName == NULL, ( "No memory for mOutputFileName buffer.\n" ), mExtSettings );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mOutputFileName, strlen( optarg ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -894,7 +895,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
         case 'B': // specify bind address
 	    if (mExtSettings->mLocalhost == NULL) {
         /* IPERF_MODIFIED Start */
-        mExtSettings->mLocalhost = (char*) malloc( strlen( optarg ) + 1 );
+        mExtSettings->mLocalhost = (char*) pvPortMalloc( strlen( optarg ) + 1 );
         FAIL( mExtSettings->mLocalhost == NULL, ( "No memory for mLocalhost buffer.\n" ), mExtSettings );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mLocalhost, strlen( optarg ) + 1 ) );
         /* IPERF_MODIFIED End */
@@ -929,7 +930,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 
             setFileInput( mExtSettings );
             /* IPERF_MODIFIED Start */
-            mExtSettings->mFileName = (char*) malloc( strlen(optarg)+1 );
+            mExtSettings->mFileName = (char*) pvPortMalloc( strlen(optarg)+1 );
             FAIL( mExtSettings->mFileName == NULL, ( "No memory for mFileName buffer.\n" ), mExtSettings );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mFileName, strlen( optarg ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -964,7 +965,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 
             setFileInput( mExtSettings );
             setSTDIN( mExtSettings );
-            mExtSettings->mFileName = (char*) malloc( strlen("<stdin>")+1 );
+            mExtSettings->mFileName = (char*) pvPortMalloc( strlen("<stdin>")+1 );
             FAIL( mExtSettings->mFileName == NULL, ( "No memory for mFileName buffer.\n" ), mExtSettings );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mFileName, strlen( "<stdin>" ) + 1 ) );
 
@@ -1063,7 +1064,7 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 #ifdef TCP_CONGESTION
 	    setCongestionControl( mExtSettings );
             /* IPERF_MODIFIED Start */
-            mExtSettings->mCongestion = (char*) malloc( strlen(optarg)+1 );
+            mExtSettings->mCongestion = (char*) pvPortMalloc( strlen(optarg)+1 );
             FAIL( mExtSettings->mCongestion == NULL, ( "No memory for mCongestion buffer.\n" ), mExtSettings );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mExtSettings->mCongestion, strlen( optarg ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -1415,7 +1416,7 @@ void Settings_GenerateListenerSettings( thread_Settings *client, thread_Settings
          (client->mMode == kTest_DualTest || client->mMode == kTest_TradeOff) ) {
         /* IPERF_MODIFIED Start */
         IPERF_DEBUGF( CLIENT_DEBUG | LISTENER_DEBUG | IPERF_DBG_TRACE, ( "Client is generating listener settings.\n" ) );
-        *listener = (thread_Settings*) malloc( sizeof( thread_Settings ) );
+        *listener = (thread_Settings*) pvPortMalloc( sizeof( thread_Settings ) );
         FAIL( *listener == NULL, ( "No memory for thread_Settings *listener.\n" ), client );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( *listener, sizeof( thread_Settings ) ) );
         /* IPERF_MODIFIED End */
@@ -1447,7 +1448,7 @@ void Settings_GenerateListenerSettings( thread_Settings *client, thread_Settings
         (*listener)->mThreadMode = kMode_Listener;
         if ( client->mHost != NULL ) {
             /* IPERF_MODIFIED Start */
-            (*listener)->mHost = (char*) malloc( strlen( client->mHost ) + 1 );
+            (*listener)->mHost = (char*) pvPortMalloc( strlen( client->mHost ) + 1 );
             FAIL( (*listener)->mHost == NULL, ( "No memory for buffer *listener->mHost.\n" ), client );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*listener)->mHost, strlen( client->mHost ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -1455,7 +1456,7 @@ void Settings_GenerateListenerSettings( thread_Settings *client, thread_Settings
         }
         if ( client->mLocalhost != NULL ) {
             /* IPERF_MODIFIED Start */
-            (*listener)->mLocalhost = (char*) malloc( strlen( client->mLocalhost ) + 1 );
+            (*listener)->mLocalhost = (char*) pvPortMalloc( strlen( client->mLocalhost ) + 1 );
             FAIL( (*listener)->mLocalhost == NULL, ( "No memory for buffer *listener->mLocalhost.\n" ), client );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*listener)->mLocalhost, strlen( client->mLocalhost ) + 1 ) );
             /* IPERF_MODIFIED End */
@@ -1487,7 +1488,7 @@ void Settings_GenerateClientSettings( thread_Settings *server,
 
     /** TODO: Version compatability */
     if ( (flags & HEADER_VERSION) != 0 ) {
-        *client = (thread_Settings*) malloc( sizeof( thread_Settings ) );
+        *client = (thread_Settings*) pvPortMalloc( sizeof( thread_Settings ) );
         FAIL( *client == NULL, ( "No memory for thread_Settings *client.\n" ), server );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( *client, sizeof( thread_Settings ) ) );
     /* IPERF_MODIFIED End */
@@ -1544,14 +1545,14 @@ void Settings_GenerateClientSettings( thread_Settings *server,
 	}
         if ( server->mLocalhost != NULL ) {
             /* IPERF_MODIFIED Start */
-            (*client)->mLocalhost = (char*) malloc( strlen( server->mLocalhost ) + 1 );
+            (*client)->mLocalhost = (char*) pvPortMalloc( strlen( server->mLocalhost ) + 1 );
             FAIL( (*client)->mLocalhost == NULL, ( "No memory for buffer *client->mLocalhost.\n" ), server );
             IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*client)->mLocalhost, strlen( server->mLocalhost ) + 1 ) );
             /* IPERF_MODIFIED End */
             strcpy( (*client)->mLocalhost, server->mLocalhost );
         }
         /* IPERF_MODIFIED Start */
-        (*client)->mHost = (char*) malloc( REPORT_ADDRLEN + 1 );
+        (*client)->mHost = (char*) pvPortMalloc( REPORT_ADDRLEN + 1 );
         FAIL( (*client)->mHost == NULL, ( "No memory for buffer *client->mHost.\n" ), server );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( (*client)->mHost, REPORT_ADDRLEN + 1 ) );
         sock_addr = (sockaddr*)&server->peer;

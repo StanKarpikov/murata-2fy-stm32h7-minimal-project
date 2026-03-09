@@ -156,7 +156,7 @@ Listener::Listener( thread_Settings *inSettings ) {
     setSingleClient(mSettings);
 
     // initialize buffer
-    mBuf = (char*) malloc( mSettings->mBufLen );
+    mBuf = (char*) pvPortMalloc( mSettings->mBufLen );
     FAIL( mBuf == NULL, ( "No memory for buffer Listener::mBuf.\n" ), inSettings );
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( mBuf, mSettings->mBufLen ) );
     /* IPERF_MODIFIED End */
@@ -365,7 +365,7 @@ sInterupted == SIGALRM
             * Memory allocated for listtemp is getting assigned to global clients list. And once IPERF operation is completed,
             * clients list is getting freed.
             */
-            listtemp = (Iperf_ListEntry*) malloc( sizeof( Iperf_ListEntry ) );
+            listtemp = (Iperf_ListEntry*) pvPortMalloc( sizeof( Iperf_ListEntry ) );
             FAIL( listtemp == NULL, ( "No memory for Iperf_ListEntry listtemp.\n" ), mSettings );
             IPERF_DEBUGF( MEMFREE_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( listtemp, sizeof( Iperf_ListEntry ) ) );
             /* IPERF_MODIFIED End */
@@ -1147,7 +1147,7 @@ void Listener::UDPSingleServer( ) {
     client_hdr* hdr = ( UDP ? (client_hdr*) (((UDP_datagram*)mBuf) + 1) :
                               (client_hdr*) mBuf);
     /* IPERF_MODIFIED Start */
-    ReportStruct *reportstruct = (ReportStruct*) malloc( sizeof( ReportStruct ) );
+    ReportStruct *reportstruct = (ReportStruct*) pvPortMalloc( sizeof( ReportStruct ) );
     memset(reportstruct, 0, sizeof(ReportStruct));
     IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( reportstruct, sizeof( ReportStruct ) ) );
     /* IPERF_MODIFIED End */
@@ -1238,7 +1238,7 @@ void Listener::UDPSingleServer( ) {
             WARN_errno( rc == SOCKET_ERROR, "recvfrom" );
             if ( rc == SOCKET_ERROR ) {
                 /* IPERF_MODIFIED Start */
-                free( reportstruct );
+                vPortFree( reportstruct );
                 /* IPERF_MODIFIED End */
                 return;
             }
@@ -1398,7 +1398,7 @@ void Listener::UDPSingleServer( ) {
 
         // Create an entry for the connection list
         /* IPERF_MODIFIED Start */
-        listtemp = (Iperf_ListEntry*) malloc( sizeof( Iperf_ListEntry ) );
+        listtemp = (Iperf_ListEntry*) pvPortMalloc( sizeof( Iperf_ListEntry ) );
         FAIL( listtemp == NULL, ( "No memory for Iperf_ListEntry listtemp.\n" ), NULL );
         IPERF_DEBUGF( MEMALLOC_DEBUG | IPERF_DBG_TRACE, IPERF_MEMALLOC_MSG( listtemp, sizeof( Iperf_ListEntry ) ) );
         /* IPERF_MODIFIED End */

@@ -50,37 +50,37 @@
 
 histogram_t *histogram_init(unsigned int bincount, unsigned int binwidth, float offset, float units,\
 			    double ci_lower, double ci_upper, unsigned int id, char *name) {
-    histogram_t *this = (histogram_t *) malloc(sizeof(histogram_t));
+    histogram_t *this = (histogram_t *) pvPortMalloc(sizeof(histogram_t));
     /* IPERF_MODIFIED Start */
     if( !this ){
         fprintf(stderr,"Malloc failure in histogram init\n");
         return(NULL);
     }
     /* IPERF_MODIFIED End */
-    this->mybins = (unsigned int *) malloc(sizeof(unsigned int) * bincount);
+    this->mybins = (unsigned int *) pvPortMalloc(sizeof(unsigned int) * bincount);
     /* IPERF_MODIFIED Start */
     if( !this->mybins ){
         fprintf(stderr,"Malloc failure in mybins init\n");
-        free(this);
+        vPortFree(this);
         return(NULL);
     }
     /* IPERF_MODIFIED End */
-    this->myname = (char *) malloc(sizeof(strlen(name)));
+    this->myname = (char *) pvPortMalloc(sizeof(strlen(name)));
     /* IPERF_MODIFIED Start */
     if( !this->myname ){
         fprintf(stderr,"Malloc failure in myname init\n");
-        free(this->mybins);
-        free(this);
+        vPortFree(this->mybins);
+        vPortFree(this);
         return(NULL);
     }
     /* IPERF_MODIFIED End */
-    this->outbuf = (char *) malloc(120 + (32*bincount) + strlen(name));
+    this->outbuf = (char *) pvPortMalloc(120 + (32*bincount) + strlen(name));
     /* IPERF_MODIFIED Start */
     if (!this->outbuf) {
     fprintf(stderr,"Malloc failure in outbuf init\n");
-    free(this->myname);
-    free(this->mybins);
-    free(this);
+    vPortFree(this->myname);
+    vPortFree(this->mybins);
+    vPortFree(this);
     return(NULL);
     }
     /* IPERF_MODIFIED End */
@@ -105,10 +105,10 @@ void histogram_delete(histogram_t *h) {
     if (h->prev)
 	histogram_delete(h->prev);
     if (h->mybins)
-	free(h->mybins);
+	vPortFree(h->mybins);
     if (h->myname)
-	free(h->myname);
-    free(h);
+	vPortFree(h->myname);
+    vPortFree(h);
 }
 
 // value is units seconds

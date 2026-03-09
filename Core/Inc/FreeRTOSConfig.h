@@ -56,7 +56,18 @@
 #define CMSIS_device_header "stm32h7xx.h"
 #endif /* CMSIS_device_header */
 
-#define configENABLE_FPU                         0
+/* Acceptable values for configTICK_TYPE_WIDTH_IN_BITS. */
+#define TICK_TYPE_WIDTH_16_BITS    0
+#define TICK_TYPE_WIDTH_32_BITS    1
+#define TICK_TYPE_WIDTH_64_BITS    2
+
+ #define configTICK_TYPE_WIDTH_IN_BITS    TICK_TYPE_WIDTH_32_BITS
+
+#define traceISR_EXIT_TO_SCHEDULER()
+#define traceISR_EXIT()
+#define traceISR_ENTER()
+
+#define configENABLE_FPU                         1
 #define configENABLE_MPU                         0
 
 #define configUSE_PREEMPTION                     1
@@ -68,9 +79,9 @@
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 56 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)55535)
+#define configTOTAL_HEAP_SIZE                    ((size_t)68000)
 #define configMAX_TASK_NAME_LEN                  ( 16 )
-#define configUSE_TRACE_FACILITY                 1
+#define configUSE_TRACE_FACILITY                 0
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
@@ -89,13 +100,13 @@
 
 /* Software timer definitions. */
 #define configUSE_TIMERS                         1
-#define configTIMER_TASK_PRIORITY                ( 2 )
+#define configTIMER_TASK_PRIORITY                ( 10 )
 #define configTIMER_QUEUE_LENGTH                 10
 #define configTIMER_TASK_STACK_DEPTH             256
 
 /* CMSIS-RTOS V2 flags */
 #define configUSE_OS2_THREAD_SUSPEND_RESUME  1
-#define configUSE_OS2_THREAD_ENUMERATE       1
+#define configUSE_OS2_THREAD_ENUMERATE       0
 #define configUSE_OS2_EVENTFLAGS_FROM_ISR    1
 #define configUSE_OS2_THREAD_FLAGS           1
 #define configUSE_OS2_TIMER                  1

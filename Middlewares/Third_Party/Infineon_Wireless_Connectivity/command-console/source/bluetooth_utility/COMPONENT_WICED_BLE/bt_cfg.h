@@ -39,7 +39,7 @@
 #ifndef COMPONENT_CAT5
 #include "cybt_platform_config.h"
 #endif
-#include "cybsp_types.h"
+// #include "cybsp_types.h"
 
 extern const wiced_bt_cfg_settings_t wiced_bt_command_console_cfg_settings;
 #ifndef COMPONENT_CAT5

@@ -145,7 +145,7 @@ Client::Client( thread_Settings *inSettings ) {
     }
     // initialize buffer
     /* IPERF_MODIFIED Start */
-    mBuf = (char*) malloc(((mSettings->mBufLen > MAXUDPBUF) ? mSettings->mBufLen : MAXUDPBUF));
+    mBuf = (char*) pvPortMalloc(((mSettings->mBufLen > MAXUDPBUF) ? mSettings->mBufLen : MAXUDPBUF));
     /* IPERF_MODIFIED End */
     FAIL_errno( mBuf == NULL, "No memory for buffer\n", mSettings );
     /* IPERF_MODIFIED Start */
@@ -219,7 +219,7 @@ Client::Client( thread_Settings *inSettings ) {
     }
 
     /* IPERF_MODIFIED Start */
-    reportstruct = (ReportStruct*) malloc( sizeof( ReportStruct ) );
+    reportstruct = (ReportStruct*) pvPortMalloc( sizeof( ReportStruct ) );
     memset(reportstruct, 0, sizeof(ReportStruct));
     /* IPERF_MODIFIED End */
     FAIL_errno( reportstruct == NULL, "No memory for report structure\n", mSettings );
@@ -672,6 +672,7 @@ void Client::RunRateLimitedTCP ( void ) {
 /*
  * UDP send loop
  */
+__attribute__((section(".flash_text")))
 void Client::RunUDP( void ) {
     struct UDP_datagram* mBuf_UDP = (struct UDP_datagram*) mBuf;
     int currLen;

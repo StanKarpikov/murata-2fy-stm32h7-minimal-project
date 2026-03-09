@@ -6,6 +6,10 @@ set(MX_Defines_Syms
 	USE_PWR_LDO_SUPPLY 
 	USE_HAL_DRIVER 
 	STM32H750xx 
+    CY_USING_HAL
+    COMPONENT_WIFI6
+    CYBSP_WIFI_CAPABLE
+    DISABLE_COMMAND_CONSOLE_BT
 	STM32_THREAD_SAFE_STRATEGY=4
     $<$<CONFIG:Debug>:DEBUG>
 )
@@ -17,7 +21,7 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/lwip-network-interface-integration/include/
@@ -86,9 +90,9 @@ set(MX_Include_Dirs
 
 # STM32CubeMX generated application sources
 set(MX_Application_Src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/console_task.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/freertos.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lptim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/quadspi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/rng.c
@@ -100,7 +104,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_hal_timebase_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h750xx.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h750xx.c
 )
 
 # STM32 HAL/LL Drivers
@@ -115,15 +119,10 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_hsem.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_mdma.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_lptim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_delayblock.c
@@ -151,11 +150,12 @@ set(FreeRTOS_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/timers.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c
 )
 set(Connectivity_Src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_cfg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_utility.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_cfg.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_utility.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/command_console/command_console.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/iperf/compat/delay.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/iperf/compat/gettimeofday.c
@@ -306,7 +306,7 @@ set(Connectivity_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/secure-sockets/source/cy_pkcs_psa_logging.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/secure-sockets/source/COMPONENT_LWIP/cy_secure_sockets.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/secure-sockets/source/COMPONENT_MBEDTLS/iot_crypto.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/secure-sockets/source/COMPONENT_MBEDTLS/cy_tls.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/secure-sockets/source/COMPONENT_MBEDTLS/cy_tls.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/lwip-network-interface-integration/source/cy_ethernetif.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/lwip-network-interface-integration/source/cy_lwip_dhcp_server.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/lwip-network-interface-integration/source/cy_network_mw_core.c
@@ -345,6 +345,7 @@ target_link_libraries(FreeRTOS PUBLIC stm32cubemx)
 add_library(Connectivity OBJECT)
 target_sources(Connectivity PRIVATE ${Connectivity_Src})
 target_link_libraries(Connectivity PUBLIC stm32cubemx)
+target_compile_definitions(Connectivity PUBLIC BLHS_SUPPORT WIFI_6G_CAPABLE)
 
 # Add STM32CubeMX generated application sources to the project
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MX_Application_Src})
@@ -353,7 +354,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MX_Application_Src})
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${MX_LINK_DIRS})
 
 # Add libraries to the project
-target_link_libraries(${CMAKE_PROJECT_NAME} ${MX_LINK_LIBS})
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${MX_LINK_LIBS})
 
 # Add the map file to the list of files to be removed with 'clean' target
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES ADDITIONAL_CLEAN_FILES ${CMAKE_PROJECT_NAME}.map)

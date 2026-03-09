@@ -332,6 +332,7 @@ void cy_network_process_ethernet_data(whd_interface_t iface, whd_buffer_t buf)
         }
 
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Send data up to LwIP \n");
+
         /* If the interface is not yet set up, drop the packet */
         if (net_interface->input == NULL || net_interface->input(buf, net_interface) != ERR_OK)
         {
@@ -1349,6 +1350,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
 #if LWIP_IPV4
     if(iface->iface_type == CY_NETWORK_WIFI_STA_INTERFACE || iface->iface_type == CY_NETWORK_ETH_INTERFACE)
     {
+#if LWIP_DHCP
         if(is_dhcp_client_required)
         {
             /* TO DO :  Save the current power save state */
@@ -1490,6 +1492,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
 #endif
             }
         }
+#endif
     }
     else
     {
@@ -1497,12 +1500,14 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
 #if LWIP_IGMP
         igmp_start(LWIP_IP_HANDLE(interface_index));
 #endif
+#if LWIP_DHCP
         /* Start the internal DHCP server */
         if((result = cy_lwip_dhcp_server_start(&internal_dhcp_server, iface))!= CY_RSLT_SUCCESS)
         {
             cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Unable to obtain IP address via DHCP\n");
             return CY_RSLT_NETWORK_ERROR_STARTING_DHCP;
         }
+#endif
     }
 #endif
 
@@ -1532,7 +1537,7 @@ cy_rslt_t cy_network_ip_down(cy_network_interface_context *iface)
         return CY_RSLT_NETWORK_INTERFACE_NETWORK_NOT_UP;
     }
 
-#if LWIP_IPV4
+#if LWIP_IPV4 && LWIP_DHCP
     if(is_dhcp_client_required)
     {
 #if LWIP_AUTOIP
@@ -1894,7 +1899,7 @@ cy_rslt_t cy_network_get_netmask_address(cy_network_interface_context *iface_con
 
 cy_rslt_t cy_network_dhcp_renew(cy_network_interface_context *iface)
 {
-#if LWIP_IPV4
+#if LWIP_IPV4 && LWIP_DHCP
     uint8_t interface_index;
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
@@ -1945,7 +1950,7 @@ static void invalidate_all_arp_entries(struct netif *netif)
 
 cy_rslt_t cy_network_ping(void *iface_context, cy_nw_ip_address_t *address, uint32_t timeout_ms, uint32_t* elapsed_time_ms)
 {
-#if LWIP_IPV4
+#if LWIP_IPV4 && LWIP_DHCP
     cy_time_t send_time;
     cy_time_t recvd_time;
     err_t err;

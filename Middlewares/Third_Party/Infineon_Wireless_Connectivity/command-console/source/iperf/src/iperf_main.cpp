@@ -274,7 +274,7 @@ int IPERF_MAIN( int argc, char **argv ) {
 #endif /* NO_EXIT */
 
         // Allocate the "global" settings
-        ext_gSettings = (thread_Settings*) malloc( sizeof( thread_Settings ) );
+        ext_gSettings = (thread_Settings*) pvPortMalloc( sizeof( thread_Settings ) );
         FAIL( ext_gSettings == NULL, ( "Unable to allocate memory for thread_Settings ext_gSettings.\n" ), NULL );
         IPERF_DEBUGF( MEMALLOC_DEBUG, IPERF_MEMALLOC_MSG( ext_gSettings, sizeof( thread_Settings ) ) );
 

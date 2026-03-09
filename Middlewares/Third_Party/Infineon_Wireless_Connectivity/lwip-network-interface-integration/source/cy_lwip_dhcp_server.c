@@ -40,7 +40,7 @@
 #include "lwip/netif.h"
 #include "lwip/netifapi.h"
 
-#if LWIP_IPV4
+#if LWIP_IPV4 && LWIP_DHCP
 
 #include "cy_lwip_dhcp_server.h"
 #include "cy_nw_mw_core_error.h"
@@ -189,7 +189,7 @@ static bool is_dhcp_server_started    = false;
  ******************************************************/
 
 #define DHCP_THREAD_PRIORITY                  (CY_RTOS_PRIORITY_ABOVENORMAL)
-#define DHCP_THREAD_STACK_SIZE                (1280)
+#define DHCP_THREAD_STACK_SIZE                (3000)
 
 
 cy_rslt_t cy_lwip_dhcp_server_start(cy_lwip_dhcp_server_t* server, cy_network_interface_context *iface_context)
@@ -952,6 +952,7 @@ void cy_ip_to_lwip(ip_addr_t *dest, const cy_lwip_ip_address_t *src)
 static cy_rslt_t internal_udp_send(struct netconn* handler, cy_lwip_packet_t* packet,
         cy_network_hw_interface_type_t type, uint8_t index)
 {
+    #if LWIP_DHCP
     err_t status;
     if(cy_rtos_get_mutex(&dhcp_mutex, CY_DHCP_MAX_MUTEX_WAIT_TIME_MS) != CY_RSLT_SUCCESS)
     {
@@ -973,6 +974,9 @@ static cy_rslt_t internal_udp_send(struct netconn* handler, cy_lwip_packet_t* pa
     }
     netbuf_free(packet);
     return ((status == CY_RSLT_SUCCESS) ? CY_RSLT_SUCCESS : CY_RSLT_NETWORK_SOCKET_ERROR);
+    #else
+    return CY_RSLT_NETWORK_SOCKET_ERROR;
+    #endif
 }
 
 static cy_rslt_t packet_create_udp(cy_lwip_packet_t** packet, uint8_t** data, uint16_t* available_space )

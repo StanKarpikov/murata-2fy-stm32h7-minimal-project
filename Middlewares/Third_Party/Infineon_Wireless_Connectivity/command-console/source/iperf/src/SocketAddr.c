@@ -564,7 +564,8 @@ int SockAddr_Ifrname(thread_Settings *inSettings) {
 		    struct sockaddr_in* inaddr = (struct sockaddr_in*)ifa->ifa_addr;
 		    if ((inaddr->sin_addr.s_addr == addr->sin_addr.s_addr) && (ifa->ifa_name)) {
 			// Found v4 address in v4 addr family, copy it to thread settings structure
-			inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+			inSettings->mIfrname = pvPortMalloc ((strlen(ifa->ifa_name) + 1)* sizeof(char));
+            memset(inSettings->mIfrname, 0, (strlen(ifa->ifa_name) + 1)* sizeof(char));
 			strcpy(inSettings->mIfrname, ifa->ifa_name);
 			break;
 		    }
@@ -577,13 +578,14 @@ int SockAddr_Ifrname(thread_Settings *inSettings) {
 	    // Try to pull the interface from the destination
 	    if ((inSettings->mThreadMode == kMode_Client) && (IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr))) {
 		char *results;
-		char *copy = (char *)malloc(strlen(inSettings->mHost)+1);
+		char *copy = (char *)pvPortMallocstrlen(inSettings->mHost)+1);
 		strcpy(copy,(const char *)inSettings->mHost);
 		if (((results = strtok(copy, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
-		    inSettings->mIfrname = calloc (strlen(results) + 1, sizeof(char));
+		    inSettings->mIfrname = pvPortMalloc ((strlen(results) + 1)* sizeof(char));
+            memset(inSettings->mIfrname, 0, (strlen(results) + 1)* sizeof(char));
 		    strcpy(inSettings->mIfrname, results);
 		}
-		free(copy);
+		vPortFree(copy);
 	    } else if ((inSettings->mThreadMode == kMode_Server) && (IN6_IS_ADDR_V4MAPPED (&addr->sin6_addr))) {
 		for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 		    if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET)) {
@@ -592,7 +594,8 @@ int SockAddr_Ifrname(thread_Settings *inSettings) {
 			memcpy(&v4, &addr->sin6_addr.s6_addr[12], 4);
 			if ((ifa->ifa_name) && (inaddr->sin_addr.s_addr == v4)) {
 			    // Found v4 address in v4 addr family, copy it to thread settings structure
-			    inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+			    inSettings->mIfrname = pvPortMalloc ((strlen(ifa->ifa_name) + 1)* sizeof(char));
+                memset(inSettings->mIfrname, 0, (strlen(ifa->ifa_name) + 1)* sizeof(char));
 			    strcpy(inSettings->mIfrname, ifa->ifa_name);
 			    break;
 			}
@@ -605,7 +608,8 @@ int SockAddr_Ifrname(thread_Settings *inSettings) {
 			struct sockaddr_in6* inaddr = (struct sockaddr_in6*)ifa->ifa_addr;
 			if ((ifa->ifa_name) && (IN6_ARE_ADDR_EQUAL(&addr->sin6_addr, &inaddr->sin6_addr))) {
 			    // Found v6 address in v6 addr family, copy it to thread settings structure
-			    inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+			    inSettings->mIfrname = pvPortMalloc ((strlen(ifa->ifa_name) + 1)* sizeof(char));
+                memset(inSettings->mIfrname, 0, (strlen(ifa->ifa_name) + 1)* sizeof(char));
 			    strcpy(inSettings->mIfrname, ifa->ifa_name);
 			    break;
 			}
