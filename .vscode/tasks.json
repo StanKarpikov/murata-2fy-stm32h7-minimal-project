@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "program_transmitter",
+			"type": "shell",
+			"command": "${workspaceRoot}/program_qspi.sh",
+			"args": [
+				"${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+				"003900493234511037333934"
+			]
+		},
+		{
+			"label": "program_receiver",
+			"type": "shell",
+			"command": "${workspaceRoot}/program_qspi.sh",
+			"args": [
+				"${workspaceRoot}/build/Debug/stm32h7_cubemx.elf",
+				"004500483234511137333934"
+			]
+		}
+	]
+}
