@@ -44,7 +44,7 @@
 #define CYBSP_BT_UART_CTS      PB0
 
 /*----------   -----------*/
-#define CY_WIFI_COUNTRY_CUSTOM      WHD_COUNTRY_GERMANY
+#define CY_WIFI_COUNTRY_CUSTOM      WHD_COUNTRY_UNITED_STATES
 
 /*----------   -----------*/
 #define CYBSP_BT_UART_TX      PA0

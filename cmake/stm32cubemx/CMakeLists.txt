@@ -5,13 +5,22 @@ enable_language(C ASM)
 set(MX_Defines_Syms 
 	USE_PWR_LDO_SUPPLY 
 	USE_HAL_DRIVER 
+    MBEDTLS_CONFIG_FILE="mbedtls_config.h"
 	STM32H750xx 
+    CY_USING_HAL
+    COMPONENT_WIFI6
+    COMPONENT_LWIP
+    BLHS_SUPPORT
+    CYBSP_WIFI_CAPABLE
+    HAVE_SNPRINTF
+    DISABLE_COMMAND_CONSOLE_BT
 	STM32_THREAD_SAFE_STRATEGY=4
     $<$<CONFIG:Debug>:DEBUG>
 )
 
 # STM32CubeMX generated include paths
 set(MX_Include_Dirs
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../MBEDTLS/App
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
@@ -93,6 +102,8 @@ set(MX_Include_Dirs
 
 # STM32CubeMX generated application sources
 set(MX_Application_Src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../MBEDTLS/Target/custom_rng.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/console_task.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/freertos.c
@@ -107,7 +118,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_hal_timebase_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h750xx.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h750xx.c
 )
 
 # STM32 HAL/LL Drivers
@@ -161,8 +172,8 @@ set(FreeRTOS_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
 )
 set(Connectivity_Src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_cfg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_utility.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_cfg.c
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/bluetooth_utility/COMPONENT_WICED_BLE/bt_utility.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/command_console/command_console.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/iperf/compat/delay.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/command-console/source/iperf/compat/gettimeofday.c
@@ -416,7 +427,9 @@ set(MX_LINK_DIRS
 set(MX_LINK_LIBS 
     STM32_Drivers
     ${TOOLCHAIN_LINK_LIBRARIES}
-    FreeRTOS	Connectivity	
+    FreeRTOS
+	Connectivity
+	
 )
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)
@@ -438,6 +451,7 @@ target_link_libraries(FreeRTOS PUBLIC stm32cubemx)
 add_library(Connectivity OBJECT)
 target_sources(Connectivity PRIVATE ${Connectivity_Src})
 target_link_libraries(Connectivity PUBLIC stm32cubemx)
+target_compile_options(Connectivity PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/Infineon_Wireless_Connectivity/pal/abstraction-rtos/include/cyabs_rtos.h)
 
 # Add STM32CubeMX generated application sources to the project
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MX_Application_Src})

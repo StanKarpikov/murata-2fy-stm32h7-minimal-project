@@ -397,9 +397,9 @@ static cy_rslt_t start_ap_common(const char *ssid, const char *key, uint8_t chan
     memcpy(ap_params.ap_credentials.password, key, strlen(key) + 1);
     ap_params.ap_credentials.security = security_type;
     ap_params.channel = channel;
-#ifdef WIFI_6G_CAPABLE 
+// #ifdef WIFI_6G_CAPABLE 
     ap_params.band = band;
-#endif
+// #endif
     ap_params.ip_settings.ip_address = ap_ip_settings.ip_address;
     ap_params.ip_settings.gateway = ap_ip_settings.gateway;
     ap_params.ip_settings.netmask = ap_ip_settings.netmask;

@@ -21,6 +21,40 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include "stm32h7xx_hal_gpio.h"
+#include "stm32h7xx_hal_uart.h"
+
+/* USER CODE BEGIN 0 */
+
+/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+    set to 'Yes') calls __io_putchar() */
+/***************************************************************************
+ * Function Name: __io_putchar (GCC)
+ ***************************************************************************/
+int __io_putchar(int ch)
+{
+    uint8_t c = ch;
+    #if !ENABLE_INSTRUMENT_BOOT_TEST 
+    if(ch == '\n')
+    {
+        HAL_UART_Transmit(&huart3, (uint8_t *)"\r", 1, 0xFFFF);
+    }
+    HAL_UART_Transmit(&huart3, (uint8_t *)&c, 1, 0xFFFF);
+    #endif
+    return ch;
+}
+
+/***************************************************************************
+ * Function Name: __io_getchar (GCC)
+ ***************************************************************************/
+int __io_getchar(void)
+{    
+    uint8_t ch;
+    #if !ENABLE_INSTRUMENT_BOOT_TEST
+    HAL_UART_Receive(&huart3, &ch, 1, 0xFFFF);
+    #endif
+    return (int)ch;
+}
 
 /* USER CODE END 0 */
 
@@ -39,7 +73,7 @@ void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 921600;
+  huart3.Init.BaudRate = 115200;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;

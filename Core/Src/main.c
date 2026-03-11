@@ -26,7 +26,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-
+#include <string.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -57,11 +57,27 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+void MPU_Config(void);
+void console_task(void *argument);
+osThreadId_t ConsoleTaskHandle;
+const osThreadAttr_t ConsoleTask_attributes = {
+  .name = "ConsoleTask",
+  .stack_size = 2048 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// Function to copy data from source to destination
+static void copy_memory_section(uint32_t *start_addr, uint32_t *end_addr, uint32_t *load_addr)
+{
+  while(start_addr < end_addr)
+  {
+    *start_addr++ = *load_addr++;
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -73,7 +89,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  __enable_irq();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -89,25 +105,65 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  __HAL_RCC_QSPI_FORCE_RESET(); // completely reset peripheral
+  __HAL_RCC_QSPI_RELEASE_RESET();
+
+  if(BSP_QSPI_Init() != QSPI_OK)
+  {
+    Error_Handler();
+  }
+
+  BSP_QSPI_GetStatus();
+
+  if(BSP_QSPI_EnableMemoryMappedMode() != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  extern uint32_t _start_data, _end_data, _load_data;
+  extern uint32_t _start_ramfunc_from_qspi, _end_ramfunc_from_qspi, _load_ramfunc_from_qspi;
+  extern uint32_t _start_itcmramfunc_from_qspi, _end_itcmramfunc_from_qspi, _load_itcmramfunc_from_qspi;
+  extern uint32_t _start_rodata, _end_rodata, _load_rodata;
+  extern uint32_t _start_text_in_qspi, _end_text_in_qspi, _load_text_in_qspi;
+  extern uint32_t _start_ram_d2_func_from_qspi, _end_ram_d2_func_from_qspi, _load_ram_d2_func_from_qspi;
+  extern uint32_t _start_ram_d3_func_from_qspi, _end_ram_d3_func_from_qspi, _load_ram_d3_func_from_qspi;
+
+  copy_memory_section(&_start_text_in_qspi, &_end_text_in_qspi, &_load_text_in_qspi);
+  copy_memory_section(&_start_data, &_end_data, &_load_data);
+  copy_memory_section(&_start_ramfunc_from_qspi, &_end_ramfunc_from_qspi, &_load_ramfunc_from_qspi);
+  copy_memory_section(&_start_itcmramfunc_from_qspi, &_end_itcmramfunc_from_qspi, &_load_itcmramfunc_from_qspi);
+  copy_memory_section(&_start_rodata, &_end_rodata, &_load_rodata);
+  copy_memory_section(&_start_ram_d2_func_from_qspi, &_end_ram_d2_func_from_qspi, &_load_ram_d2_func_from_qspi);
+  copy_memory_section(&_start_ram_d3_func_from_qspi, &_end_ram_d3_func_from_qspi, &_load_ram_d3_func_from_qspi);
+
+  extern uint32_t _begin_bss_in_ram_d2, _end_bss_in_ram_d2;
+  memset(&_begin_bss_in_ram_d2, 0, (uint8_t *)&_end_bss_in_ram_d2 - (uint8_t *)&_begin_bss_in_ram_d2);
+
+  // MPU_Config();
+
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SDMMC1_SD_Init();
   MX_TIM3_Init();
   MX_LPTIM1_Init();
   MX_RNG_Init();
   MX_USART3_UART_Init();
-  MX_QUADSPI_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  hsd1.Instance     = SDMMC1;
+  HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_1);
+  ConsoleTaskHandle = osThreadNew(console_task, NULL, &ConsoleTask_attributes);
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
+  osKernelInitialize();
 
   /* Start scheduler */
   osKernelStart();

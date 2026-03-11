@@ -446,7 +446,7 @@ static cy_socket_ctx_t* alloc_socket()
             socket_list[i].ctx->iface_idx = 1;
 #else
             /* Default interface for Wi-Fi will be STA interface */
-            socket_list[i].ctx->iface_type = CY_SOCKET_STA_INTERFACE;
+            socket_list[i].ctx->iface_type = CY_SOCKET_AP_INTERFACE;
             socket_list[i].ctx->iface_idx = 0;
 #endif
             socket_list[i].ctx->socket_magic_header = SECURE_SOCKETS_MAGIC_HEADER;
